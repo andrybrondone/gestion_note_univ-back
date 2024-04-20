@@ -13,6 +13,26 @@ router.get("/", async (req, res) => {
   res.json(listOfEtudiant)
 })
 
+router.get("/info", async (req, res) => {
+  const limit = parseInt(req.query.limit) || 10
+  const offset = parseInt(req.query.offset) || 0
+
+  const listOfEtudiant = await models.Etudiant.findAll({
+    attributes: ['id', 'matricule'],
+    include: [{
+      model: models.Personne,
+      attributes: ['nom', 'prenom', 'email', 'photo'],
+    }],
+    order: [['matricule', 'ASC']],
+    limit,
+    offset
+  })
+
+  const count = await models.Etudiant.count({ include: [models.Personne] })
+
+  res.json({ etudiants: listOfEtudiant, totalPage: Math.ceil(count / limit) })
+})
+
 router.get("/byId/:id", async (req, res) => {
   const id = req.params.id
   const etudiant = await models.Etudiant.findByPk(id)

@@ -1,13 +1,54 @@
 const express = require('express')
 const router = express.Router()
 const models = require('../models')
-//const { Sequelize } = require('sequelize')
 
 router.get("/", async (req, res) => {
+  const limit = parseInt(req.query.limit) || 10
+  const offset = parseInt(req.query.offset) || 0
+
   const listOfMatiere = await models.Matiere.findAll({
+    attributes: ['id', 'nom_mat', 'credit', 'niveau_mat'],
+    include: [
+      {
+        model: models.Enseignant,
+        attributes: ['personneId'],
+        include: [{
+          model: models.Personne,
+          attributes: ['nom', 'prenom'],
+        }],
+      },
+      {
+        model: models.Module,
+        attributes: ['nom_module'],
+      }
+    ],
+    order: [['id', 'DESC']],
+    limit,
+    offset
+  })
+
+  const count = await models.Matiere.count({
+    include: [
+      {
+        model: models.Enseignant,
+        include: [{
+          model: models.Personne,
+        }],
+      },
+      {
+        model: models.Module,
+      }
+    ]
+  })
+
+  res.json({ matieres: listOfMatiere, totalPage: Math.ceil(count / limit) })
+})
+
+router.get("/nom", async (req, res) => {
+  const nameOfMatiere = await models.Matiere.findAll({
     attributes: ['id', 'nom_mat']
   })
-  res.json(listOfMatiere)
+  res.json(nameOfMatiere)
 })
 
 router.get("/byId/:id", async (req, res) => {

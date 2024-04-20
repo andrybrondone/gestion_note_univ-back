@@ -19,7 +19,8 @@ module.exports = {
       },
       matricule: {
         type: Sequelize.STRING(100),
-        allowNull: false
+        allowNull: false,
+        unique: true,
       },
       niveau: {
         type: Sequelize.STRING(3),

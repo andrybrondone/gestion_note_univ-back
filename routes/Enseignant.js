@@ -3,14 +3,34 @@ const router = express.Router()
 const models = require('../models')
 
 router.get("/", async (req, res) => {
-  const listOfEnseignant = await models.Enseignant.findAll({
+  const nameOfEnseignant = await models.Enseignant.findAll({
     attributes: ['id'],
     include: [{
       model: models.Personne,
-      attributes: ['prenom'],
+      attributes: ['nom', 'prenom'],
     }]
   })
-  res.json(listOfEnseignant)
+  res.json(nameOfEnseignant)
+})
+
+router.get("/info", async (req, res) => {
+  const limit = parseInt(req.query.limit) || 10
+  const offset = parseInt(req.query.offset) || 0
+
+  const listOfEnseignant = await models.Enseignant.findAll({
+    attributes: ['id', 'grade'],
+    include: [{
+      model: models.Personne,
+      attributes: ['nom', 'prenom', 'email', 'photo'],
+    }],
+    order: [['id', 'DESC']],
+    limit,
+    offset
+  })
+
+  const count = await models.Enseignant.count({ include: [models.Personne] })
+
+  res.json({ enseignants: listOfEnseignant, totalPage: Math.ceil(count / limit) })
 })
 
 router.get("/byId/:id", async (req, res) => {
