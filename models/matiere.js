@@ -29,7 +29,8 @@ module.exports = (sequelize, DataTypes) => {
   Matiere.init({
     nom_mat: DataTypes.STRING,
     credit: DataTypes.INTEGER,
-    niveau_mat: DataTypes.STRING
+    niveau_mat: DataTypes.STRING,
+    delete: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Matiere',

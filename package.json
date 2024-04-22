@@ -9,7 +9,7 @@
     "dev": "nodemon index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Andriambololomanana Brondone",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",

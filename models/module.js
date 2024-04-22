@@ -15,7 +15,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Module.init({
-    nom_module: DataTypes.STRING
+    nom_module: DataTypes.STRING,
+    delete: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Module',

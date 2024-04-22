@@ -14,7 +14,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: {
           model: 'Enseignants',
-          key: 'id'
+          key: 'id',
         }
       },
       moduleId: {
@@ -22,7 +22,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: {
           model: 'Modules',
-          key: 'id'
+          key: 'id',
         }
       },
       nom_mat: {
@@ -36,6 +36,11 @@ module.exports = {
       niveau_mat: {
         allowNull: false,
         type: Sequelize.STRING(3)
+      },
+      delete: {
+        allowNull: false,
+        type: Sequelize.STRING(6),
+        defaultValue: 'false'
       },
       createdAt: {
         allowNull: false,

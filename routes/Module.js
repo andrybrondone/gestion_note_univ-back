@@ -5,6 +5,7 @@ const models = require('../models')
 router.get("/", async (req, res) => {
   const nameOfModule = await models.Module.findAll({
     attributes: ['id', 'nom_module'],
+    where: { delete: "false" },
     order: [['id', 'DESC']],
   })
   res.json(nameOfModule)
@@ -17,6 +18,7 @@ router.get("/info", async (req, res) => {
   const listOfModule = await models.Module.findAll({
     attributes: ['id', 'nom_module'],
     order: [['id', 'DESC']],
+    where: { delete: "false" },
     limit,
     offset
   })
@@ -34,25 +36,49 @@ router.get("/byId/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const module = req.body
-  await models.Module.create(module)
-  res.json(module)
+  try {
+    await models.Module.create(module)
+    res.json({ Status: "Success" })
+  } catch (error) {
+    res.json({ Message: "ErrorDupilation" })
+  }
 })
 
 router.put("/:id", async (req, res) => {
   const moduleId = req.params.id
-  const post = req.body
-  await models.Module.update(post, { where: { id: moduleId } })
-  res.json(post)
+  const module = req.body
+  try {
+    await models.Module.update(module, { where: { id: moduleId } })
+    res.json({ Status: "Success" })
+  } catch (error) {
+    res.json({ Message: "ErrorDupilation" })
+  }
+})
+
+// soft delete
+router.put("/softdelete/:id", async (req, res) => {
+  const moduleId = req.params.id
+  try {
+    await models.Module.update({ delete: "true" }, { where: { id: moduleId } })
+    res.json({ Status: "Success" })
+  } catch (error) {
+    res.json({ Message: "ErrorDupilation" })
+  }
 })
 
 router.delete("/:id", async (req, res) => {
   const moduleId = req.params.id
-  await models.Module.destroy({
-    where: {
-      id: moduleId
-    }
-  })
-  res.json("Delete ok")
+  try {
+    await models.Module.destroy({
+      where: {
+        id: moduleId
+      }
+    })
+    res.json("Delete ok")
+  } catch (error) {
+    console.log(error.message);
+    res.json({ Message: "Error" })
+  }
 })
 
 module.exports = router

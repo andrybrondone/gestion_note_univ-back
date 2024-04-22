@@ -45,6 +45,7 @@ router.post("/", async (req, res) => {
     matricule,
     niveau,
     parcours,
+    statut,
   } = req.body
 
   try {
@@ -52,7 +53,8 @@ router.post("/", async (req, res) => {
       PersonneId: id_pers,
       matricule,
       niveau,
-      parcours
+      parcours,
+      statut,
     })
     res.status(201).json(newEtudiant)
   } catch (error) {

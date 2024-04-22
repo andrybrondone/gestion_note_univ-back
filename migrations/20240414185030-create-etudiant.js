@@ -12,6 +12,7 @@ module.exports = {
       personneId: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        onDelete: 'CASCADE',
         references: {
           model: 'Personnes',
           key: 'id'
@@ -29,6 +30,10 @@ module.exports = {
       parcours: {
         type: Sequelize.STRING(3),
         allowNull: false
+      },
+      statut: {
+        type: Sequelize.STRING(15),
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,

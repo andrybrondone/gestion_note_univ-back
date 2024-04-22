@@ -20,6 +20,7 @@ router.get("/", async (req, res) => {
       {
         model: models.Module,
         attributes: ['nom_module'],
+        //where: { delete: "false" },
       }
     ],
     order: [['id', 'DESC']],
@@ -83,9 +84,34 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const matiereId = req.params.id
-  const post = req.body
-  await models.Matiere.update(post, { where: { id: matiereId } })
-  res.json(post)
+
+  const {
+    id_ens,
+    id_module,
+    nom_mat,
+    niveau_mat,
+    credit,
+  } = req.body
+
+  try {
+    const updateModule = await models.Matiere.update(
+      {
+        EnseignantId: id_ens,
+        ModuleId: id_module,
+        nom_mat,
+        niveau_mat,
+        credit
+      },
+      {
+        where: { id: matiereId }
+      }
+    )
+    res.status(201).json(updateModule)
+  } catch (error) {
+    console.error('Error : ', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+
 })
 
 router.delete("/:id", async (req, res) => {

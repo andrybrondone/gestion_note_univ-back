@@ -23,7 +23,8 @@ module.exports = (sequelize, DataTypes) => {
   Etudiant.init({
     matricule: DataTypes.STRING,
     niveau: DataTypes.STRING,
-    parcours: DataTypes.STRING
+    parcours: DataTypes.STRING,
+    statut: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Etudiant',
