@@ -35,7 +35,12 @@ router.get("/info", async (req, res) => {
 
 router.get("/byId/:id", async (req, res) => {
   const id = req.params.id
-  const enseignant = await models.Enseignant.findByPk(id)
+  const enseignant = await models.Enseignant.findByPk(id, {
+    include: [{
+      model: models.Personne,
+      attributes: ['nom', 'prenom', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+    }],
+  })
   res.json(enseignant)
 })
 
@@ -56,9 +61,14 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const enseignantId = req.params.id
-  const post = req.body
-  await models.Enseignant.update(post, { where: { id: enseignantId } })
-  res.json(post)
+  const { grade } = req.body
+  try {
+    const updateEnseignant = await models.Enseignant.update({ grade }, { where: { id: enseignantId } })
+    res.status(201).json(updateEnseignant)
+  } catch (error) {
+    console.error('Error : ', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })
 
 router.delete("/:id", async (req, res) => {

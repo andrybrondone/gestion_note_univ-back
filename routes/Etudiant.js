@@ -35,7 +35,12 @@ router.get("/info", async (req, res) => {
 
 router.get("/byId/:id", async (req, res) => {
   const id = req.params.id
-  const etudiant = await models.Etudiant.findByPk(id)
+  const etudiant = await models.Etudiant.findByPk(id, {
+    include: [{
+      model: models.Personne,
+      attributes: ['nom', 'prenom', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+    }],
+  })
   res.json(etudiant)
 })
 

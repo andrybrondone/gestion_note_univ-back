@@ -10,12 +10,6 @@ router.get("/", async (req, res) => {
   res.json(listOfPersonne)
 })
 
-router.get("/byId/:id", async (req, res) => {
-  const id = req.params.id
-  const personne = await models.Personne.findByPk(id)
-  res.json(personne)
-})
-
 router.post("/", async (req, res) => {
   const {
     nom,
@@ -53,9 +47,33 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const personneId = req.params.id
-  const post = req.body
-  await models.Personne.update(post, { where: { id: personneId } })
-  res.json(post)
+  const {
+    nom,
+    prenom,
+    email,
+    adresse,
+    lieu_nais,
+  } = req.body
+
+  const userDateString = req.body.date_nais
+  const userDate = new Date(userDateString)
+
+  const sequelizeDateFormattedDate = userDate.toISOString().split('T')[0]
+
+  try {
+    const newPersonne = await models.Personne.update({
+      nom,
+      prenom,
+      email,
+      adresse,
+      lieu_nais,
+      date_nais: sequelizeDateFormattedDate,
+    }, { where: { id: personneId } })
+    res.status(201).json(newPersonne)
+  } catch (error) {
+    console.error('Error : ', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })
 
 router.delete("/:id", async (req, res) => {
