@@ -21,9 +21,10 @@ router.get("/info", async (req, res) => {
     attributes: ['id', 'grade'],
     include: [{
       model: models.Personne,
-      attributes: ['nom', 'prenom', 'email', 'photo'],
+      attributes: ['id', 'nom', 'prenom', 'email', 'photo'],
     }],
-    order: [['id', 'DESC']],
+    where: { statut: "actif" },
+    //order: [['id', 'DESC']],
     limit,
     offset
   })
@@ -65,6 +66,17 @@ router.put("/:id", async (req, res) => {
   try {
     const updateEnseignant = await models.Enseignant.update({ grade }, { where: { id: enseignantId } })
     res.status(201).json(updateEnseignant)
+  } catch (error) {
+    console.error('Error : ', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+router.put("/statut/:id", async (req, res) => {
+  const enseignantId = req.params.id
+  try {
+    const updateStatutEnseignant = await models.Enseignant.update({ statut: "inactif" }, { where: { PersonneId: enseignantId } })
+    res.status(201).json(updateStatutEnseignant)
   } catch (error) {
     console.error('Error : ', error)
     res.status(500).json({ error: 'Internal server error' })

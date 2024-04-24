@@ -21,7 +21,7 @@ router.get("/info", async (req, res) => {
     attributes: ['id', 'matricule'],
     include: [{
       model: models.Personne,
-      attributes: ['nom', 'prenom', 'email', 'photo'],
+      attributes: ['id', 'nom', 'prenom', 'email', 'photo'],
     }],
     order: [['matricule', 'ASC']],
     limit,
@@ -70,19 +70,25 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const etudiantId = req.params.id
-  const post = req.body
-  await models.Etudiant.update(post, { where: { id: etudiantId } })
-  res.json(post)
-})
+  const {
+    matricule,
+    niveau,
+    parcours,
+    statut,
+  } = req.body
 
-router.delete("/:id", async (req, res) => {
-  const etudiantId = req.params.id
-  await models.Etudiant.destroy({
-    where: {
-      id: etudiantId
-    }
-  })
-  res.json("Delete ok")
+  try {
+    const updateEtudiant = await models.Etudiant.update({
+      matricule,
+      niveau,
+      parcours,
+      statut,
+    }, { where: { id: etudiantId } })
+    res.status(201).json(updateEtudiant)
+  } catch (error) {
+    console.error('Error : ', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })
 
 module.exports = router
