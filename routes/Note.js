@@ -1,35 +1,47 @@
 const express = require('express')
 const router = express.Router()
 const models = require('../models')
-//const { Sequelize } = require('sequelize')
 
 router.get("/", async (req, res) => {
-  /*const listOfNote = await Note.findAll({
-    attributes: [
-      'nom_mat',
-      'niveau_mat',
-      'credit',
-      [Sequelize.col('enseignants.nom_ens'), 'nom_ens'],
-      [Sequelize.col('enseignants.prenom_ens'), 'prenom_ens'],
-      [Sequelize.col('modules.nom_module'), 'nom_module'],
-    ],
+  const limit = parseInt(req.query.limit) || 10
+  const offset = parseInt(req.query.offset) || 0
+
+  const listOfNote = await models.Note.findAll({
+    attributes: ['id', 'note'],
     include: [
       {
-        model: Enseignant,
-        attributes: ['nom_ens', 'prenom_ens'],
+        model: models.Etudiant,
+        attributes: ['matricule'],
+        include: [{
+          model: models.Personne,
+          attributes: ['nom', 'prenom'],
+        }],
       },
       {
-        model: Module,
-        attributes: ['nom_module'],
+        model: models.Matiere,
+        attributes: ['nom_mat'],
       }
     ],
-    where: {
-      [Sequelize.literal('notes.id_ens')]: Sequelize.col('enseignants.id_ens'),
-      [Sequelize.literal('notes.id_module')]: Sequelize.col('modules.id_module'),
-    },
-    order: [['id_mat', 'DESC']]
+    order: [['id', 'DESC']],
+    limit,
+    offset
   })
-  res.json(listOfNote)*/
+
+  const count = await models.Note.count({
+    include: [
+      {
+        model: models.Etudiant,
+        include: [{
+          model: models.Personne,
+        }],
+      },
+      {
+        model: models.Matiere,
+      }
+    ]
+  })
+
+  res.json({ notes: listOfNote, totalPage: Math.ceil(count / limit) })
 })
 
 router.get("/byId/:id", async (req, res) => {
@@ -60,9 +72,29 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const noteId = req.params.id
-  const post = req.body
-  await models.Note.update(post, { where: { id: noteId } })
-  res.json(post)
+
+  const {
+    id_et,
+    id_mat,
+    note,
+  } = req.body
+
+  try {
+    const updateNote = await models.Note.update(
+      {
+        EtudiantId: id_et,
+        MatiereId: id_mat,
+        note
+      },
+      {
+        where: { id: noteId }
+      }
+    )
+    res.status(201).json(updateNote)
+  } catch (error) {
+    console.error('Error : ', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })
 
 router.delete("/:id", async (req, res) => {

@@ -94,7 +94,7 @@ router.put("/:id", async (req, res) => {
   } = req.body
 
   try {
-    const updateModule = await models.Matiere.update(
+    const updateMatiere = await models.Matiere.update(
       {
         EnseignantId: id_ens,
         ModuleId: id_module,
@@ -106,7 +106,7 @@ router.put("/:id", async (req, res) => {
         where: { id: matiereId }
       }
     )
-    res.status(201).json(updateModule)
+    res.status(201).json(updateMatiere)
   } catch (error) {
     console.error('Error : ', error)
     res.status(500).json({ error: 'Internal server error' })

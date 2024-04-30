@@ -21,7 +21,7 @@ router.get("/info", async (req, res) => {
     attributes: ['id', 'matricule'],
     include: [{
       model: models.Personne,
-      attributes: ['id', 'nom', 'prenom', 'email', 'photo'],
+      attributes: ['id', 'nom', 'prenom', 'phone', 'email', 'photo'],
     }],
     order: [['matricule', 'ASC']],
     limit,
@@ -38,7 +38,7 @@ router.get("/byId/:id", async (req, res) => {
   const etudiant = await models.Etudiant.findByPk(id, {
     include: [{
       model: models.Personne,
-      attributes: ['nom', 'prenom', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+      attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
     }],
   })
   res.json(etudiant)

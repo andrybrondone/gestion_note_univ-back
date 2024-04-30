@@ -21,7 +21,7 @@ router.get("/info", async (req, res) => {
     attributes: ['id', 'grade'],
     include: [{
       model: models.Personne,
-      attributes: ['id', 'nom', 'prenom', 'email', 'photo'],
+      attributes: ['id', 'nom', 'prenom', 'phone', 'email', 'photo'],
     }],
     where: { statut: "actif" },
     //order: [['id', 'DESC']],
@@ -39,7 +39,7 @@ router.get("/byId/:id", async (req, res) => {
   const enseignant = await models.Enseignant.findByPk(id, {
     include: [{
       model: models.Personne,
-      attributes: ['nom', 'prenom', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+      attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
     }],
   })
   res.json(enseignant)
