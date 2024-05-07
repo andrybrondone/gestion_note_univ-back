@@ -4,6 +4,7 @@ const models = require('../models')
 const bcryptjs = require('bcryptjs')
 const { sign } = require('jsonwebtoken')
 const { validateToken } = require('../middlewares/AuthMiddleware')
+const { where } = require('sequelize')
 
 require('dotenv').config();
 
@@ -13,6 +14,44 @@ router.get("/", async (req, res) => {
     limit: 1
   })
   res.json(listOfPersonne)
+})
+
+router.get('/auth', validateToken, (req, res) => {
+  res.json(req.personne)
+})
+
+router.get("/byId/:id", async (req, res) => {
+  const id = req.params.id
+  const personne = await models.Personne.findByPk(id, {
+    attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+  })
+  res.json(personne)
+})
+
+router.get("/enseignant/byId/:id", async (req, res) => {
+  const id = req.params.id
+  const enseignant = await models.Personne.findOne({
+    attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+    include: [{
+      model: models.Enseignant,
+      attributes: ['grade'],
+    }],
+    where: { id: id }
+  })
+  res.json(enseignant)
+})
+
+router.get("/etudiant/byId/:id", async (req, res) => {
+  const id = req.params.id
+  const personneEt = await models.Personne.findOne({
+    attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+    include: [{
+      model: models.Etudiant,
+      attributes: ['matricule', 'niveau', 'parcours', 'statut'],
+    }],
+    where: { id: id }
+  })
+  res.json(personneEt)
 })
 
 router.post("/", async (req, res) => {
@@ -52,7 +91,14 @@ router.post("/", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { email, mdp } = req.body
 
-  const personne = await models.Personne.findOne({ where: { email: email } })
+  const personne = await models.Personne.findOne({
+    include: [{
+      model: models.Etudiant,
+      attributes: ['matricule', 'niveau', 'parcours'],
+    }],
+
+    where: { email: email }
+  })
 
   if (!personne) {
     res.json({ error: "Adresse e-mail invalide" })
@@ -66,16 +112,24 @@ router.post("/login", async (req, res) => {
           process.env.JWT_SIGN_SECRET,
           { expiresIn: '1h' }
         )
-        res.json({ token: accessToken, nom: personne.nom, id: personne.id, statut: personne.statue })
+        if (personne.statue === "etudiant") {
+          res.json({
+            token: accessToken,
+            nom: personne.nom,
+            id: personne.id,
+            statut: personne.statue,
+            niveau: personne.Etudiants[0].niveau,
+            matricule: personne.Etudiants[0].matricule,
+            parcours: personne.Etudiants[0].parcours,
+          })
+        } else {
+          res.json({ token: accessToken, nom: personne.nom, id: personne.id, statut: personne.statue, niveau: "", matricule: "", parcours: "" })
+        }
       }
     }).catch((err) => {
       console.log(err);
     })
   }
-})
-
-router.get('/auth', validateToken, (req, res) => {
-  res.json(req.personne)
 })
 
 router.put("/:id", async (req, res) => {

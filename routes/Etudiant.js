@@ -18,7 +18,7 @@ router.get("/info", async (req, res) => {
   const offset = parseInt(req.query.offset) || 0
 
   const listOfEtudiant = await models.Etudiant.findAll({
-    attributes: ['id', 'matricule'],
+    attributes: ['id', 'matricule', 'niveau', 'parcours'],
     include: [{
       model: models.Personne,
       attributes: ['id', 'nom', 'prenom', 'phone', 'email', 'photo'],

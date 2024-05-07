@@ -50,6 +50,43 @@ router.get("/byId/:id", async (req, res) => {
   res.json(note)
 })
 
+router.get("/byEtudiant/:matricule", async (req, res) => {
+  const matricule = req.params.matricule
+  const limit = parseInt(req.query.limit) || 10
+  const offset = parseInt(req.query.offset) || 0
+
+  const listOfNoteByEt = await models.Note.findAll({
+    attributes: ['id', 'note'],
+    include: [
+      {
+        model: models.Etudiant,
+        attributes: ['matricule'],
+        where: { matricule: matricule },
+      },
+      {
+        model: models.Matiere,
+        attributes: ['nom_mat'],
+        order: [['nom_mat', 'ASC']],
+      }
+    ],
+    limit,
+    offset
+  })
+
+  const count = await models.Note.count({
+    include: [
+      {
+        model: models.Etudiant,
+      },
+      {
+        model: models.Matiere,
+      }
+    ]
+  })
+
+  res.json({ noteParEtudiant: listOfNoteByEt, totalPage: Math.ceil(count / limit) })
+})
+
 router.post("/", async (req, res) => {
   const {
     id_et,
@@ -65,8 +102,7 @@ router.post("/", async (req, res) => {
     })
     res.status(201).json(newModule)
   } catch (error) {
-    console.error('Error : ', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.json({ error: 'error' })
   }
 })
 

@@ -30,6 +30,7 @@ module.exports = (sequelize, DataTypes) => {
     nom_mat: DataTypes.STRING,
     credit: DataTypes.INTEGER,
     niveau_mat: DataTypes.STRING,
+    parcours: DataTypes.ARRAY(DataTypes.STRING),
     delete: DataTypes.STRING
   }, {
     sequelize,

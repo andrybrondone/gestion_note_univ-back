@@ -1,17 +1,26 @@
 const express = require('express')
 const router = express.Router()
-const models = require('../models')
+const models = require('../models');
+const { Sequelize, Op } = require('sequelize');
+
+const parcoursOptions = [
+  { value: "IG", label: "IG" },
+  { value: "GBD", label: "GBD" },
+  { value: "ASR", label: "ASR" },
+  { value: "GID", label: "GID" },
+  { value: "OCC", label: "OCC" },
+];
 
 router.get("/", async (req, res) => {
   const limit = parseInt(req.query.limit) || 10
   const offset = parseInt(req.query.offset) || 0
 
   const listOfMatiere = await models.Matiere.findAll({
-    attributes: ['id', 'nom_mat', 'credit', 'niveau_mat'],
+    attributes: ['id', 'nom_mat', 'credit', 'niveau_mat', 'parcours'],
     include: [
       {
         model: models.Enseignant,
-        attributes: ['personneId'],
+        attributes: ['PersonneId'],
         include: [{
           model: models.Personne,
           attributes: ['nom', 'prenom'],
@@ -20,7 +29,7 @@ router.get("/", async (req, res) => {
       {
         model: models.Module,
         attributes: ['nom_module'],
-        //where: { delete: "false" },
+        where: { delete: "false" },
       }
     ],
     order: [['id', 'DESC']],
@@ -45,12 +54,70 @@ router.get("/", async (req, res) => {
   res.json({ matieres: listOfMatiere, totalPage: Math.ceil(count / limit) })
 })
 
-router.get("/nom", async (req, res) => {
+router.get("/nom/:niveau", async (req, res) => {
+  const niveau = req.params.niveau
+
   const nameOfMatiere = await models.Matiere.findAll({
-    attributes: ['id', 'nom_mat']
+    attributes: ['id', 'nom_mat'],
+    where: { niveau_mat: niveau },
   })
+
   res.json(nameOfMatiere)
 })
+
+router.get("/byNiveau/:niveau/:parcours", async (req, res) => {
+  const niveau = req.params.niveau;
+  const parcours = req.params.parcours;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = parseInt(req.query.offset) || 0;
+
+  const listOfMatiereByNiveau = await models.Matiere.findAll({
+    attributes: ['id', 'nom_mat', 'credit'],
+    include: [
+      {
+        model: models.Enseignant,
+        attributes: ['PersonneId'],
+        include: [{
+          model: models.Personne,
+          attributes: ['nom', 'prenom'],
+        }],
+      },
+      {
+        model: models.Module,
+        attributes: ['nom_module'],
+        where: { delete: "false" },
+      }
+    ],
+    where: {
+      niveau_mat: niveau,
+      parcours: { [Sequelize.Op.contains]: [parcours] } // Utilisation de l'opérateur de Sequelize pour vérifier si le parcours est contenu dans le tableau
+    },
+    order: [['id', 'DESC']],
+    limit,
+    offset
+  });
+
+  const count = await models.Matiere.count({
+    include: [
+      {
+        model: models.Enseignant,
+        include: [{
+          model: models.Personne,
+        }],
+      },
+      {
+        model: models.Module,
+      }
+    ],
+    where: {
+      niveau_mat: niveau,
+      parcours: { [Sequelize.Op.contains]: [parcours] }
+    }
+  });
+
+  res.json({ matieresParNiveau: listOfMatiereByNiveau, totalPage: Math.ceil(count / limit) });
+});
+
 
 router.get("/byId/:id", async (req, res) => {
   const id = req.params.id
@@ -64,6 +131,7 @@ router.post("/", async (req, res) => {
     id_module,
     nom_mat,
     niveau_mat,
+    parcours,
     credit,
   } = req.body
 
@@ -73,6 +141,7 @@ router.post("/", async (req, res) => {
       ModuleId: id_module,
       nom_mat,
       niveau_mat,
+      parcours: parcours.filter((parcours) => parcoursOptions.map((option) => option.value).includes(parcours)),
       credit
     })
     res.status(201).json(newModule)
@@ -90,6 +159,7 @@ router.put("/:id", async (req, res) => {
     id_module,
     nom_mat,
     niveau_mat,
+    parcours,
     credit,
   } = req.body
 
@@ -100,6 +170,7 @@ router.put("/:id", async (req, res) => {
         ModuleId: id_module,
         nom_mat,
         niveau_mat,
+        parcours: parcours.filter((parcours) => parcoursOptions.map((option) => option.value).includes(parcours)),
         credit
       },
       {

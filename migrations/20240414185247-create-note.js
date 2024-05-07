@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      etudiantId: {
+      EtudiantId: {
         allowNull: false,
         type: Sequelize.INTEGER,
         onDelete: 'CASCADE',
@@ -18,7 +18,7 @@ module.exports = {
           key: 'id'
         }
       },
-      matiereId: {
+      MatiereId: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
@@ -37,6 +37,12 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      }
+    }, {
+      uniqueKeys: {
+        uniqueGrade: {
+          fields: ['EtudiantId', 'MatiereId']
+        }
       }
     });
   },

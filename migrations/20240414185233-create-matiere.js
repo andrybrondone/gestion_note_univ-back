@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      enseignantId: {
+      EnseignantId: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
@@ -17,7 +17,7 @@ module.exports = {
           key: 'id',
         }
       },
-      moduleId: {
+      ModuleId: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
@@ -36,6 +36,10 @@ module.exports = {
       niveau_mat: {
         allowNull: false,
         type: Sequelize.STRING(3)
+      },
+      parcours: {
+        allowNull: false,
+        type: Sequelize.ARRAY(Sequelize.STRING(4))
       },
       delete: {
         allowNull: false,
