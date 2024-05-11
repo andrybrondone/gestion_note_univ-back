@@ -4,9 +4,24 @@ const models = require('../models')
 const bcryptjs = require('bcryptjs')
 const { sign } = require('jsonwebtoken')
 const { validateToken } = require('../middlewares/AuthMiddleware')
-const { where } = require('sequelize')
 
 require('dotenv').config();
+
+const multer = require('multer')
+const path = require('path')
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/images')
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname))
+  }
+})
+
+const upload = multer({
+  storage: storage
+})
 
 router.get("/", async (req, res) => {
   const listOfPersonne = await models.Personne.findAll({
@@ -24,6 +39,14 @@ router.get("/byId/:id", async (req, res) => {
   const id = req.params.id
   const personne = await models.Personne.findByPk(id, {
     attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+  })
+  res.json(personne)
+})
+
+router.get("/photo/:id", async (req, res) => {
+  const id = req.params.id
+  const personne = await models.Personne.findByPk(id, {
+    attributes: ['photo'],
   })
   res.json(personne)
 })
@@ -159,6 +182,19 @@ router.put("/:id", async (req, res) => {
       date_nais: sequelizeDateFormattedDate,
     }, { where: { id: personneId } })
     res.status(201).json(newPersonne)
+  } catch (error) {
+    console.error('Error : ', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+router.put('/updatephoto/:id', upload.single('photo'), async (req, res) => {
+  const personneId = req.params.id
+  const image = req.file.filename;
+
+  try {
+    const newPhoto = await models.Personne.update({ photo: image }, { where: { id: personneId } })
+    res.status(201).json(newPhoto)
   } catch (error) {
     console.error('Error : ', error)
     res.status(500).json({ error: 'Internal server error' })
