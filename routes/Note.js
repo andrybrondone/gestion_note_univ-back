@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const models = require('../models')
+const { Sequelize } = require('sequelize')
 
 router.get("/", async (req, res) => {
   const limit = parseInt(req.query.limit) || 10
@@ -86,6 +87,39 @@ router.get("/byEtudiant/:matricule", async (req, res) => {
 
   res.json({ noteParEtudiant: listOfNoteByEt, totalPage: Math.ceil(count / limit) })
 })
+
+router.get("/releverNote/:matricule", async (req, res) => {
+  const matricule = req.params.matricule
+
+  // Trouver l'étudiant
+  const etudiant = await models.Etudiant.findOne({
+    attributes: ['id'],
+    where: { matricule: matricule },
+    include: [{
+      model: models.Personne,
+      attributes: ['nom', 'prenom', 'date_nais', 'lieu_nais'],
+    }]
+  })
+
+  // Trouver les notes de l'étudiant
+  const notesEtudiant = await models.Note.findAll({
+    where: { EtudiantId: etudiant.id }, // Utilise l'id de l'étudiant
+    attributes: ['id', 'note'],
+    include: [{
+      model: models.Matiere,
+      attributes: ['nom_mat', 'credit'],
+      include: [{
+        model: models.Module,
+        attributes: ['id', 'nom_module'],
+      }],
+      group: ['ModuleId']
+    }],
+  })
+
+  // Renvoyer l'étudiant avec ses notes
+  res.json({ etudiant, notes: notesEtudiant })
+})
+
 
 router.post("/", async (req, res) => {
   const {

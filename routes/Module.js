@@ -34,6 +34,17 @@ router.get("/byId/:id", async (req, res) => {
   res.json(module)
 })
 
+router.get("/test", async (req, res) => {
+  const nameOfModule = await models.Module.findAll({
+    attributes: ['id', 'nom_module'],
+    include: [{
+      model: models.Matiere,
+      attributes: ['nom_mat']
+    }]
+  })
+  res.json(nameOfModule)
+})
+
 router.post("/", async (req, res) => {
   const module = req.body
   try {

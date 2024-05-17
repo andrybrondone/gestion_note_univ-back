@@ -118,7 +118,6 @@ router.get("/byNiveau/:niveau/:parcours", async (req, res) => {
   res.json({ matieresParNiveau: listOfMatiereByNiveau, totalPage: Math.ceil(count / limit) });
 });
 
-
 router.get("/byId/:id", async (req, res) => {
   const id = req.params.id
   const matiere = await models.Matiere.findByPk(id)
@@ -146,8 +145,8 @@ router.post("/", async (req, res) => {
     })
     res.status(201).json(newModule)
   } catch (error) {
-    console.error('Error : ', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.error(error.name)
+    res.json({ error: 'error' })
   }
 })
 
@@ -179,8 +178,7 @@ router.put("/:id", async (req, res) => {
     )
     res.status(201).json(updateMatiere)
   } catch (error) {
-    console.error('Error : ', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.json({ error: 'error' })
   }
 
 })

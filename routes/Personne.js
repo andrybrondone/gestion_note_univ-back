@@ -4,29 +4,14 @@ const models = require('../models')
 const bcryptjs = require('bcryptjs')
 const { sign } = require('jsonwebtoken')
 const { validateToken } = require('../middlewares/AuthMiddleware')
+const { upload } = require('../middlewares/UploadMiddleware')
 
 require('dotenv').config();
 
-const multer = require('multer')
-const path = require('path')
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/images')
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname))
-  }
-})
-
-const upload = multer({
-  storage: storage
-})
-
 router.get("/", async (req, res) => {
-  const listOfPersonne = await models.Personne.findAll({
+  const listOfPersonne = await models.Personne.findOne({
+    attributes: ['id', 'nom', 'prenom'],
     order: [['id', 'DESC']],
-    limit: 1
   })
   res.json(listOfPersonne)
 })
@@ -77,7 +62,7 @@ router.get("/etudiant/byId/:id", async (req, res) => {
   res.json(personneEt)
 })
 
-router.post("/", async (req, res) => {
+router.post("/", (req, res) => {
   const {
     nom,
     prenom,
@@ -95,19 +80,27 @@ router.post("/", async (req, res) => {
   const userDate = new Date(userDateString)
   const sequelizeDateFormattedDate = userDate.toISOString().split('T')[0]
 
-  bcryptjs.hash(mdp, 10).then((hash) => {
-    models.Personne.create({
-      nom,
-      prenom,
-      phone,
-      email,
-      adresse,
-      lieu_nais,
-      date_nais: sequelizeDateFormattedDate,
-      mdp: hash,
-      statue
-    })
-    res.json("SUCCESS")
+
+  bcryptjs.hash(mdp, 10).then(async (hash) => {
+    try {
+      await models.Personne.create({
+        nom,
+        prenom,
+        phone,
+        email,
+        adresse,
+        lieu_nais,
+        date_nais: sequelizeDateFormattedDate,
+        mdp: hash,
+        statue
+      })
+      res.status(201).json("success")
+    } catch (error) {
+      console.log(error.name)
+      if (error.name === "SequelizeUniqueConstraintError") {
+        res.json({ error: "duplication" })
+      }
+    }
   })
 })
 

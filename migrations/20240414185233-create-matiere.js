@@ -54,6 +54,12 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
+    }, {
+      uniqueKeys: {
+        uniqueMatiere: {
+          fields: ['nom_mat', 'niveau_mat']
+        }
+      }
     });
   },
   async down(queryInterface, Sequelize) {
