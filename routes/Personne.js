@@ -105,48 +105,58 @@ router.post("/", (req, res) => {
 })
 
 router.post("/login", async (req, res) => {
-  const { email, mdp } = req.body
+  const { email, mdp } = req.body;
 
   const personne = await models.Personne.findOne({
-    include: [{
-      model: models.Etudiant,
-      attributes: ['matricule', 'niveau', 'parcours'],
-    }],
-
     where: { email: email }
-  })
+  });
 
   if (!personne) {
-    res.json({ error: "Adresse e-mail invalide" })
-  } else {
-    bcryptjs.compare(mdp, personne.mdp).then((match) => {
-      if (!match) {
-        res.json({ error: "Mot de passe incorrect" })
-      } else {
-        const accessToken = sign(
-          { id: personne.id, nom: personne.nom, statut: personne.statue },
-          process.env.JWT_SIGN_SECRET,
-          { expiresIn: '1h' }
-        )
-        if (personne.statue === "etudiant") {
-          res.json({
-            token: accessToken,
-            nom: personne.nom,
-            id: personne.id,
-            statut: personne.statue,
-            niveau: personne.Etudiants[0].niveau,
-            matricule: personne.Etudiants[0].matricule,
-            parcours: personne.Etudiants[0].parcours,
-          })
-        } else {
-          res.json({ token: accessToken, nom: personne.nom, id: personne.id, statut: personne.statue, niveau: "", matricule: "", parcours: "" })
-        }
-      }
-    }).catch((err) => {
-      console.log(err);
-    })
+    return res.json({ error: "Adresse e-mail invalide" });
   }
-})
+
+  const etudiant = await models.Etudiant.findOne({
+    attributes: ['matricule', 'niveau', 'parcours'],
+    where: { PersonneId: personne.id }
+  });
+
+  bcryptjs.compare(mdp, personne.mdp).then((match) => {
+    if (!match) {
+      return res.json({ error: "Mot de passe incorrect" });
+    } else {
+      const accessToken = sign(
+        { id: personne.id, nom: personne.nom, statut: personne.statue },
+        process.env.JWT_SIGN_SECRET,
+        { expiresIn: '1h' }
+      );
+      if (personne.statue === "etudiant") {
+        return res.json({
+          token: accessToken,
+          nom: personne.nom,
+          id: personne.id,
+          statut: personne.statue,
+          niveau: etudiant ? etudiant.niveau : '',
+          matricule: etudiant ? etudiant.matricule : '',
+          parcours: etudiant ? etudiant.parcours : '',
+        });
+      } else {
+        return res.json({
+          token: accessToken,
+          nom: personne.nom,
+          id: personne.id,
+          statut: personne.statue,
+          niveau: "",
+          matricule: "",
+          parcours: ""
+        });
+      }
+    }
+  }).catch((err) => {
+    console.log(err);
+    return res.status(500).json({ error: "Internal server error" });
+  });
+});
+
 
 router.put("/:id", async (req, res) => {
   const personneId = req.params.id

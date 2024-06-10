@@ -27,6 +27,9 @@ app.use("/matiere", matiereRouter)
 const noteRouter = require("./routes/Note")
 app.use("/note", noteRouter)
 
+const historiqueNiveauRouter = require("./routes/HistoriqueNiveau")
+app.use("/historique-niveau", historiqueNiveauRouter)
+
 // db.sequelize.sync().then(() => {
 // });
 app.listen(3001, () => {

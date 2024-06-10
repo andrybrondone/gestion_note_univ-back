@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const models = require('../models')
+const { Sequelize } = require('sequelize')
 
 router.get("/", async (req, res) => {
   const nameOfEnseignant = await models.Enseignant.findAll({
@@ -24,7 +25,7 @@ router.get("/info", async (req, res) => {
       attributes: ['id', 'nom', 'prenom', 'phone', 'email', 'photo'],
     }],
     where: { statut: "actif" },
-    //order: [['id', 'DESC']],
+    order: [['id', 'DESC']],
     limit,
     offset
   })
@@ -33,6 +34,42 @@ router.get("/info", async (req, res) => {
 
   res.json({ enseignants: listOfEnseignant, totalPage: Math.ceil(count / limit) })
 })
+
+router.get("/rechercher-ens/:recherche", async (req, res) => {
+  const recherche = req.params.recherche;
+  const limit = parseInt(req.query.limit) || 10
+  const offset = parseInt(req.query.offset) || 0
+
+  const enseignants = await models.Enseignant.findAll({
+    attributes: ['id', 'grade'],
+    include: [{
+      model: models.Personne,
+      attributes: ['id', 'nom', 'prenom', 'phone', 'email', 'photo'],
+    }],
+    where: {
+      [Sequelize.Op.or]: [
+        {
+          '$Personne.nom$': {
+            [Sequelize.Op.like]: `%${recherche}%`
+          }
+        },
+        {
+          '$Personne.prenom$': {
+            [Sequelize.Op.like]: `%${recherche}%`
+          }
+        }
+      ],
+      statut: "actif"
+    },
+    order: [['id', 'DESC']],
+    limit,
+    offset
+  });
+
+  const count = await models.Enseignant.count({ include: [models.Personne] })
+
+  res.json({ enseignants: enseignants, totalPage: Math.ceil(count / limit) })
+});
 
 router.get("/byId/:id", async (req, res) => {
   const id = req.params.id

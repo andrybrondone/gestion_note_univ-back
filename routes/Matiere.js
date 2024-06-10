@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const models = require('../models');
-const { Sequelize, Op } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 const parcoursOptions = [
   { value: "IG", label: "IG" },
@@ -11,9 +11,10 @@ const parcoursOptions = [
   { value: "OCC", label: "OCC" },
 ];
 
-router.get("/", async (req, res) => {
+router.get("/recherche/:niveau", async (req, res) => {
   const limit = parseInt(req.query.limit) || 10
   const offset = parseInt(req.query.offset) || 0
+  const niveau = req.params.niveau
 
   const listOfMatiere = await models.Matiere.findAll({
     attributes: ['id', 'nom_mat', 'credit', 'niveau_mat', 'parcours'],
@@ -32,6 +33,7 @@ router.get("/", async (req, res) => {
         where: { delete: "false" },
       }
     ],
+    where: { niveau_mat: niveau },
     order: [['id', 'DESC']],
     limit,
     offset
@@ -48,18 +50,22 @@ router.get("/", async (req, res) => {
       {
         model: models.Module,
       }
-    ]
+    ],
+    where: { niveau_mat: niveau }
   })
 
   res.json({ matieres: listOfMatiere, totalPage: Math.ceil(count / limit) })
 })
 
-router.get("/nom/:niveau", async (req, res) => {
+router.get("/nom/:idPers/:niveau", async (req, res) => {
+  const idPers = req.params.idPers
   const niveau = req.params.niveau
+
+  const enseignantId = await models.Enseignant.findOne({ attributes: ["id"], where: { PersonneId: idPers } })
 
   const nameOfMatiere = await models.Matiere.findAll({
     attributes: ['id', 'nom_mat'],
-    where: { niveau_mat: niveau },
+    where: { niveau_mat: niveau, EnseignantId: enseignantId.id },
   })
 
   res.json(nameOfMatiere)
@@ -122,6 +128,34 @@ router.get("/byId/:id", async (req, res) => {
   const id = req.params.id
   const matiere = await models.Matiere.findByPk(id)
   res.json(matiere)
+})
+
+router.get("/byEns/:idPers/:niveau", async (req, res) => {
+  const idPers = req.params.idPers
+  const niveau = req.params.niveau;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = parseInt(req.query.offset) || 0;
+
+  const enseignantId = await models.Enseignant.findOne({ attributes: ['id'], where: { PersonneId: idPers } })
+
+  const matieresParEns = await models.Matiere.findAll({
+    attributes: ['id', 'nom_mat', 'parcours'],
+    where: {
+      EnseignantId: enseignantId.id,
+      niveau_mat: niveau,
+    },
+    limit,
+    offset
+  })
+
+  const count = await models.Matiere.count({
+    where: {
+      EnseignantId: enseignantId.id,
+      niveau_mat: niveau,
+    }
+  });
+
+  res.json({ matieresParEns, totalPage: Math.ceil(count / limit) });
 })
 
 router.post("/", async (req, res) => {
