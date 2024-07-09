@@ -23,7 +23,7 @@ router.get('/auth', validateToken, (req, res) => {
 router.get("/byId/:id", async (req, res) => {
   const id = req.params.id
   const personne = await models.Personne.findByPk(id, {
-    attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+    attributes: ['id', 'nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
   })
   res.json(personne)
 })
@@ -39,7 +39,7 @@ router.get("/photo/:id", async (req, res) => {
 router.get("/enseignant/byId/:id", async (req, res) => {
   const id = req.params.id
   const enseignant = await models.Personne.findOne({
-    attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+    attributes: ['id', 'nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
     include: [{
       model: models.Enseignant,
       attributes: ['grade'],
@@ -52,10 +52,10 @@ router.get("/enseignant/byId/:id", async (req, res) => {
 router.get("/etudiant/byId/:id", async (req, res) => {
   const id = req.params.id
   const personneEt = await models.Personne.findOne({
-    attributes: ['nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
+    attributes: ['id', 'nom', 'prenom', 'phone', 'email', 'adresse', 'date_nais', 'lieu_nais', 'photo'],
     include: [{
       model: models.Etudiant,
-      attributes: ['matricule', 'niveau', 'parcours', 'statut'],
+      attributes: ['id', 'matricule', 'niveau', 'parcours', 'statut'],
     }],
     where: { id: id }
   })
@@ -197,6 +197,18 @@ router.put('/updatephoto/:id', upload.single('photo'), async (req, res) => {
 
   try {
     const newPhoto = await models.Personne.update({ photo: image }, { where: { id: personneId } })
+    res.status(201).json(newPhoto)
+  } catch (error) {
+    console.error('Error : ', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+router.put('/delete-photo/:id', upload.single('photo'), async (req, res) => {
+  const personneId = req.params.id
+
+  try {
+    const newPhoto = await models.Personne.update({ photo: "default_photo.jpg" }, { where: { id: personneId } })
     res.status(201).json(newPhoto)
   } catch (error) {
     console.error('Error : ', error)

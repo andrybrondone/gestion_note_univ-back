@@ -30,6 +30,9 @@ app.use("/note", noteRouter)
 const historiqueNiveauRouter = require("./routes/HistoriqueNiveau")
 app.use("/historique-niveau", historiqueNiveauRouter)
 
+const sendEmailRouter = require("./routes/SendEmail")
+app.use("/send-email", sendEmailRouter)
+
 // db.sequelize.sync().then(() => {
 // });
 app.listen(3001, () => {
