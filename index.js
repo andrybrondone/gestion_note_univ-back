@@ -33,10 +33,6 @@ app.use("/historique-niveau", historiqueNiveauRouter)
 const sendEmailRouter = require("./routes/SendEmail")
 app.use("/send-email", sendEmailRouter)
 
-// db.sequelize.sync().then(() => {
-// });
 app.listen(3001, () => {
   console.log('Example app listening on port 3001!');
 });
-
-//Run app, then load http://localhost:3001 in a browser to see the output.

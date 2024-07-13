@@ -3,7 +3,7 @@ const { verify } = require('jsonwebtoken')
 require('dotenv').config();
 
 const validateToken = (req, res, next) => {
-  const accessToken = req.header("accessToken")
+  const accessToken = req.header("Authorization").replace('Bearer ', '');
 
   if (!accessToken) return res.json({ error: "Vous n'êtes pas authentifier" })
 
