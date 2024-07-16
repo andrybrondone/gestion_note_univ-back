@@ -125,7 +125,11 @@ router.post("/login", async (req, res) => {
       return res.json({ error: "Mot de passe incorrect" });
     } else {
       const accessToken = sign(
-        { id: personne.id, nom: personne.nom, statut: personne.statue },
+        {
+          id: personne.id, nom: personne.nom, statut: personne.statue, niveau: etudiant ? etudiant.niveau : '',
+          matricule: etudiant ? etudiant.matricule : '',
+          parcours: etudiant ? etudiant.parcours : '',
+        },
         process.env.JWT_SIGN_SECRET,
         { expiresIn: '1h' }
       );

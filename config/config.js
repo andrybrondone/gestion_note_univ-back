@@ -4,7 +4,7 @@ module.exports = {
   "development": {
     "username": "postgres",
     "password": "admin",
-    "database": "simple-crud",
+    "database": "gestion_note_univ",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
