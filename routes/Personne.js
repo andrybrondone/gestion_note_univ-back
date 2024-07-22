@@ -5,6 +5,8 @@ const bcryptjs = require('bcryptjs')
 const { sign } = require('jsonwebtoken')
 const { validateToken } = require('../middlewares/AuthMiddleware')
 const { upload } = require('../middlewares/UploadMiddleware')
+const fs = require('fs');
+const path = require('path');
 
 require('dotenv').config();
 
@@ -200,20 +202,65 @@ router.put('/updatephoto/:id', upload.single('photo'), async (req, res) => {
   const image = req.file.filename;
 
   try {
-    const newPhoto = await models.Personne.update({ photo: image }, { where: { id: personneId } })
-    res.status(201).json(newPhoto)
+    const personne = await models.Personne.findOne({ where: { id: personneId } });
+
+    if (!personne) {
+      return res.json({ error: 'Utilisateur invalide' });
+    }
+
+    const imagePath = path.join(__dirname, '..', 'public', 'images', personne.photo);
+
+    if (personne.photo !== "default_photo.jpg") {
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error('Error deleting image: ', err);
+          return res.status(500).json({ error: 'Internal server error while deleting image' });
+        }
+        console.log('Image deleted successfully');
+
+        personne.photo = image;
+        personne.save();
+        res.status(200).json({ Status: 'Success', message: 'Image change successfully' });
+      });
+    } else {
+      personne.photo = image;
+      personne.save();
+      res.status(200).json({ Status: 'Success', message: 'Image change successfully' });
+    }
   } catch (error) {
     console.error('Error : ', error)
     res.status(500).json({ error: 'Internal server error' })
   }
+
 })
 
 router.put('/delete-photo/:id', upload.single('photo'), async (req, res) => {
   const personneId = req.params.id
 
   try {
-    const newPhoto = await models.Personne.update({ photo: "default_photo.jpg" }, { where: { id: personneId } })
-    res.status(201).json(newPhoto)
+    const personne = await models.Personne.findOne({ where: { id: personneId } });
+
+    if (!personne) {
+      return res.json({ error: 'Utilisateur invalide' });
+    }
+
+    const imagePath = path.join(__dirname, '..', 'public', 'images', personne.photo);
+
+    if (personne.photo !== "default_photo.jpg") {
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error('Error deleting image: ', err);
+          return res.status(500).json({ error: 'Internal server error while deleting image' });
+        }
+        console.log('Image deleted successfully');
+
+        personne.photo = "default_photo.jpg";
+        personne.save();
+        res.status(200).json({ Status: 'Success', message: 'Image deleted successfully' });
+      });
+    } else {
+      res.json({ Status: 'empty', message: "Aucune photo à supprimer" })
+    }
   } catch (error) {
     console.error('Error : ', error)
     res.status(500).json({ error: 'Internal server error' })
