@@ -211,21 +211,31 @@ router.put('/updatephoto/:id', upload.single('photo'), async (req, res) => {
     const imagePath = path.join(__dirname, '..', 'public', 'images', personne.photo);
 
     if (personne.photo !== "default_photo.jpg") {
-      fs.unlink(imagePath, (err) => {
+      // Vérifiez si le fichier existe avant de tenter de le supprimer
+      fs.access(imagePath, fs.constants.F_OK, (err) => {
         if (err) {
-          console.error('Error deleting image: ', err);
-          return res.status(500).json({ error: 'Internal server error while deleting image' });
+          console.error('Image does not exist: ', err);
+          return res.status(404).json({ error: 'Image not found' });
         }
-        console.log('Image deleted successfully');
 
-        personne.photo = image;
-        personne.save();
-        res.status(200).json({ Status: 'Success', message: 'Image change successfully' });
+        // Si le fichier existe, essayez de le supprimer
+        fs.unlink(imagePath, (err) => {
+          if (err) {
+            console.error('Error deleting image: ', err);
+            return res.status(500).json({ error: 'Internal server error while deleting image' });
+          }
+
+          console.log('Image deleted successfully');
+
+          personne.photo = image;
+          personne.save();
+          res.status(200).json({ Status: 'Success', message: 'Image changed successfully' });
+        });
       });
     } else {
       personne.photo = image;
       personne.save();
-      res.status(200).json({ Status: 'Success', message: 'Image change successfully' });
+      res.status(200).json({ Status: 'Success', message: 'Image changed successfully' });
     }
   } catch (error) {
     console.error('Error : ', error)
@@ -247,17 +257,23 @@ router.put('/delete-photo/:id', upload.single('photo'), async (req, res) => {
     const imagePath = path.join(__dirname, '..', 'public', 'images', personne.photo);
 
     if (personne.photo !== "default_photo.jpg") {
-      fs.unlink(imagePath, (err) => {
+      fs.access(imagePath, fs.constants.F_OK, (err) => {
         if (err) {
-          console.error('Error deleting image: ', err);
-          return res.status(500).json({ error: 'Internal server error while deleting image' });
+          console.error('Image does not exist: ', err);
+          return res.status(404).json({ error: 'Image not found' });
         }
-        console.log('Image deleted successfully');
+        fs.unlink(imagePath, (err) => {
+          if (err) {
+            console.error('Error deleting image: ', err);
+            return res.status(500).json({ error: 'Internal server error while deleting image' });
+          }
+          console.log('Image deleted successfully');
 
-        personne.photo = "default_photo.jpg";
-        personne.save();
-        res.status(200).json({ Status: 'Success', message: 'Image deleted successfully' });
-      });
+          personne.photo = "default_photo.jpg";
+          personne.save();
+          res.status(200).json({ Status: 'Success', message: 'Image deleted successfully' });
+        });
+      })
     } else {
       res.json({ Status: 'empty', message: "Aucune photo à supprimer" })
     }
