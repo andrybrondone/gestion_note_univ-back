@@ -64,6 +64,52 @@ router.get("/etudiant/byId/:id", async (req, res) => {
   res.json(personneEt)
 })
 
+router.get("/undefined-person", async (req, res) => {
+  try {
+    const etudiantsSansAssociation = await models.Personne.findAll({
+      attributes: ['id', 'nom', 'prenom'],
+      include: [{
+        model: models.Etudiant,
+        attributes: ['id'],
+        required: false, // Permet de récupérer même si pas d'association
+      }],
+      where: { statue: "etudiant" }
+    });
+
+    const enseignantsSansAssociation = await models.Personne.findAll({
+      attributes: ['id', 'nom', 'prenom'],
+      include: [{
+        model: models.Enseignant,
+        attributes: ['id'],
+        required: false, // Permet de récupérer même si pas d'association
+      }],
+      where: { statue: "enseignant" }
+    });
+
+    for (const etudiant of etudiantsSansAssociation) {
+      if (etudiant.Etudiants.length === 0) {
+        await models.Personne.destroy({
+          where: { id: etudiant.id }
+        });
+      }
+    }
+
+    for (const enseignant of enseignantsSansAssociation) {
+      if (enseignant.Enseignants.length === 0) {
+        await models.Personne.destroy({
+          where: { id: enseignant.id }
+        });
+      }
+    }
+
+    res.status(200).json("ok");
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "An error occurred while processing the request." });
+  }
+});
+
+
 router.post("/", (req, res) => {
   const {
     nom,
